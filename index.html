@@ -1,69 +1,53 @@
 <!DOCTYPE html>
 <html>
-
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>JSFiddle 6zqf1gor</title>
-
-  <style>
-    
-  </style>
-
-  
-</head>
-<body>
-  <!DOCTYPE html>
-<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>💀💀 RAM EATER 16GB</title>
+<title>💀 RAM 8GB</title>
 <style>
   body { background:#000; color:#0f0; font-family:monospace; margin:0; padding:10px; overflow:hidden; }
-    #c { font-size:50px; color:#ff0; }
-      #m { font-size:20px; color:#f0f; }
-      </style>
-      </head>
-      <body>
-      <div id="c">0</div>
-      <div id="m">MEM: 0 MB</div>
+  #m { font-size:24px; color:#f0f; }
+  #s { font-size:14px; color:#0ff; }
+</style>
+</head>
+<body>
+<div id="m">MEM: 0 GB</div>
+<div id="s">Objects: 0</div>
 
-      <script>
-      let count = 0;
-      let leak = [];
+<script>
+let leak = [];
+let count = 0;
 
-      // 🔥 المرحلة 1: تفجير الذاكرة فوراً - 30 مليون عنصر (يستهلك ~6-8GB فوراً)
-      for (let i = 0; i < 30000000; i++) {
-        leak.push({ a: Math.random(), b: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", c: [1,2,3,4,5,6,7,8,9,10] });
-        }
-        document.getElementById('m').textContent = "MEM: " + (JSON.stringify(leak).length / 1024 / 1024 / 1024).toFixed(2) + " GB";
+// 🔥 كل عنصر ثقيل: نص 500 حرف + مصفوفة
+// ~ 600 بايت فعلي لكل عنصر
+// 15 مليون عنصر × 600 بايت ≈ 9GB
+function makeHeavy() {
+  return {
+    a: Math.random(),
+    b: "x".repeat(500),           // نص 500 حرف
+    c: new Array(50).fill(1.5),   // مصفوفة 50 عنصر
+    d: "y".repeat(200)
+  };
+}
 
-        // 🔥 المرحلة 2: infinite loop يشتغل فوراً
-        function burn() {
-          for (let i = 0; i < 50000000; i++) {
-              count++;
-                }
-                  document.getElementById('c').textContent = count;
-                    setTimeout(burn, 0);
-                    }
-                    burn();
+// 🔥 نبني على دفعات عشان نقدر نعرض التقدم
+const TOTAL = 15000000;   // 15 مليون عنصر
+const BATCH = 500000;
 
-                    // 🔥 المرحلة 3: leak مستمر وحشي - يضيف 500 ألف عنصر كل 100ms
-                    setInterval(() => {
-                      for (let i = 0; i < 500000; i++) {
-                          leak.push({ a: Math.random(), b: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", c: [1,2,3,4,5,6,7,8,9,10] });
-                            }
-                              const gb = (JSON.stringify(leak).length / 1024 / 1024 / 1024).toFixed(2);
-                                document.getElementById('m').textContent = "MEM: " + gb + " GB";
-                                }, 100);
-                                </script>
-                                </body>
-                                </html>
-
-  <script>
-    
-  </script>
+function build() {
+  if (count >= TOTAL) {
+    document.getElementById('s').textContent = "DONE ✅ Objects: " + count.toLocaleString();
+    return;
+  }
+  for (let i = 0; i < BATCH; i++) {
+    leak.push(makeHeavy());
+  }
+  count += BATCH;
+  document.getElementById('s').textContent = "Objects: " + count.toLocaleString();
+  document.getElementById('m').textContent = "MEM: " + (count * 600 / 1024 / 1024 / 1024).toFixed(2) + " GB (تقديري)";
+  setTimeout(build, 0);
+}
+build();
+</script>
 </body>
 </html>
